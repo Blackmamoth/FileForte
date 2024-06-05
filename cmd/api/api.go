@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Blackmamoth/vault/config"
+	"github.com/Blackmamoth/fileforte/config"
+	"github.com/Blackmamoth/fileforte/services/auth"
+	"github.com/Blackmamoth/fileforte/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -42,11 +44,24 @@ func (s *APIServer) Run() error {
 		AllowCredentials: true,
 	}))
 
+	router.Mount("/v1/api", routerVersions(router))
+
 	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(fmt.Sprintf("Route not Found for [%s] %s", r.Method, r.URL.Path)))
+		utils.SendAPIErrorResponse(w, http.StatusNotFound, fmt.Errorf("route not found for [%s] %s", r.Method, r.URL.Path))
 	})
 
 	config.Logger.INFO(fmt.Sprintf("Application running on port: %s", s.addr))
 	return http.ListenAndServe(fmt.Sprintf(":%s", s.addr), router)
+}
+
+func routerVersions(r chi.Router) http.Handler {
+
+	subRouter := chi.NewRouter()
+
+	authHandler := auth.AuthHandler()
+
+	subRouter.Mount("/auth", authHandler)
+
+	return subRouter
+
 }
