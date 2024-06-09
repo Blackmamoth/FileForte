@@ -51,7 +51,7 @@ func RenameFiles(handlerFunc http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 			defer file.Close()
-			newFileName := fmt.Sprintf("%s.%s", uuid.New(), filepath.Ext(fileHeader.Filename))
+			newFileName := fmt.Sprintf("%s%s", uuid.New(), filepath.Ext(fileHeader.Filename))
 			fileHeaders[i] = &types.FileHeader{
 				OriginalName: fileHeader.Filename,
 				NewName:      newFileName,

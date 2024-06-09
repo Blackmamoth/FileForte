@@ -3,8 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"runtime"
 
+	"github.com/Blackmamoth/fileforte/config"
+	"github.com/Blackmamoth/fileforte/types"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -32,4 +37,49 @@ func ParseJSON(r *http.Request, v any) error {
 		return fmt.Errorf("missing request body")
 	}
 	return json.NewDecoder(r.Body).Decode(v)
+}
+
+func WriteFile(fileHeader *types.FileHeader) error {
+	_, err := os.Stat(config.FileUploadConfig.MEDIA_UPLOAD_PATH)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = createMediaUploadDirectory()
+
+			if err != nil {
+				return err
+			}
+
+		} else {
+			return err
+		}
+	}
+
+	mediaPath := config.FileUploadConfig.MEDIA_UPLOAD_PATH
+	seperator := "/"
+	if runtime.GOOS == "windows" {
+		seperator = "\\"
+	}
+
+	file, err := os.Create(fmt.Sprintf("%s%s%s", mediaPath, seperator, fileHeader.NewName))
+
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	fileData, err := fileHeader.FileHeader.Open()
+
+	if err != nil {
+		return err
+	}
+
+	defer fileData.Close()
+
+	_, err = io.Copy(file, fileData)
+
+	return err
+}
+
+func createMediaUploadDirectory() error {
+	return os.MkdirAll(config.FileUploadConfig.MEDIA_UPLOAD_PATH, os.ModePerm)
 }
