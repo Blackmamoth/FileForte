@@ -1,8 +1,9 @@
-package auth
+package authService
 
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Blackmamoth/fileforte/config"
@@ -17,11 +18,10 @@ const (
 	Refresh TokenType = "REFRESH_TOKEN"
 )
 
-func GenerateJWTToken(userId string, r *http.Request, tokenType TokenType) (string, error) {
-	expiration := time.Minute * time.Duration(config.JWTConfig.JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS)
+func GenerateJWTToken(userId int, r *http.Request, tokenType TokenType, expiration time.Time) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId":     userId,
+		"userId":     strconv.Itoa(userId),
 		"remoteAddr": r.RemoteAddr,
 		"expiresAt":  expiration,
 	})

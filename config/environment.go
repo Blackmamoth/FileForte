@@ -8,14 +8,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type ApplicationConfiguration struct {
+type appConfig struct {
 	APP_PORT      string
 	ENVIRONMENT   string
 	LOG_FILE_PATH string
 	LOG_FILE_NAME string
 }
 
-type MySQLConfiguration struct {
+type mySQLConfiguration struct {
 	MYSQL_USER    string
 	MYSQL_PASS    string
 	MYSQL_HOST    string
@@ -23,19 +23,28 @@ type MySQLConfiguration struct {
 	MYSQL_DB_NAME string
 }
 
-type JWTConfiguration struct {
-	JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS int64
-	JWT_ACCESS_TOKEN_SECRET             string
-	JWT_REFRESH_TOKEN_SECRET            string
+type jwtConfig struct {
+	JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS  int64
+	JWT_ACCESS_TOKEN_SECRET              string
+	JWT_REFRESH_TOKEN_SECRET             string
+	JWT_REFRESH_TOKEN_EXPIRATION_IN_DAYS int64
+	ACCESS_TOKEN_HEADER_NAME             string
+	REFRESH_TOKEN_COOKIE_NAME            string
 }
 
-var AppConfig ApplicationConfiguration = newAppConfig()
-var MySQLConfig MySQLConfiguration = newMySQLConfig()
-var JWTConfig JWTConfiguration = newJWTConfig()
+type fileUploadConfig struct {
+	MAX_UPLOAD_SIZE   int64
+	MEDIA_UPLOAD_PATH string
+}
 
-func newAppConfig() ApplicationConfiguration {
+var AppConfig appConfig = newAppConfig()
+var MySQLConfig mySQLConfiguration = newMySQLConfig()
+var JWTConfig jwtConfig = newJWTConfig()
+var FileUploadConfig fileUploadConfig = newFileUploadConfig()
+
+func newAppConfig() appConfig {
 	godotenv.Load()
-	return ApplicationConfiguration{
+	return appConfig{
 		APP_PORT:      getEnvString("APP_PORT"),
 		ENVIRONMENT:   getEnvString("ENVIRONMENT"),
 		LOG_FILE_PATH: getEnvString("LOG_FILE_PATH"),
@@ -43,8 +52,8 @@ func newAppConfig() ApplicationConfiguration {
 	}
 }
 
-func newMySQLConfig() MySQLConfiguration {
-	return MySQLConfiguration{
+func newMySQLConfig() mySQLConfiguration {
+	return mySQLConfiguration{
 		MYSQL_USER:    getEnvString("MYSQL_USER"),
 		MYSQL_PASS:    getEnvString("MYSQL_PASS"),
 		MYSQL_HOST:    getEnvString("MYSQL_HOST"),
@@ -53,11 +62,21 @@ func newMySQLConfig() MySQLConfiguration {
 	}
 }
 
-func newJWTConfig() JWTConfiguration {
-	return JWTConfiguration{
-		JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS: getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS"),
-		JWT_ACCESS_TOKEN_SECRET:             getEnvString("JWT_ACCESS_TOKEN_SECRET"),
-		JWT_REFRESH_TOKEN_SECRET:            getEnvString("JWT_REFRESH_TOKEN_SECRET"),
+func newJWTConfig() jwtConfig {
+	return jwtConfig{
+		JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS:  getEnvInt("JWT_ACCESS_TOKEN_EXPIRATION_IN_MINS"),
+		JWT_ACCESS_TOKEN_SECRET:              getEnvString("JWT_ACCESS_TOKEN_SECRET"),
+		JWT_REFRESH_TOKEN_SECRET:             getEnvString("JWT_REFRESH_TOKEN_SECRET"),
+		JWT_REFRESH_TOKEN_EXPIRATION_IN_DAYS: getEnvInt("JWT_REFRESH_TOKEN_EXPIRATION_IN_DAYS"),
+		ACCESS_TOKEN_HEADER_NAME:             getEnvString("ACCESS_TOKEN_HEADER_NAME"),
+		REFRESH_TOKEN_COOKIE_NAME:            getEnvString("REFRESH_TOKEN_COOKIE_NAME"),
+	}
+}
+
+func newFileUploadConfig() fileUploadConfig {
+	return fileUploadConfig{
+		MAX_UPLOAD_SIZE:   getEnvInt("MAX_UPLOAD_SIZE"),
+		MEDIA_UPLOAD_PATH: getEnvString("MEDIA_UPLOAD_PATH"),
 	}
 }
 

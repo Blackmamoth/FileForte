@@ -31,6 +31,29 @@ func GetUserByEmail(email string) (*types.User, error) {
 
 }
 
+func GetUserById(userId int) (*types.User, error) {
+	rows, err := db.DB.Query("SELECT * FROM users WHERE id = ?", userId)
+	if err != nil {
+		return nil, err
+	}
+
+	u := new(types.User)
+
+	for rows.Next() {
+		u, err = scanRowsIntoUser(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if u.Id == 0 {
+		return nil, fmt.Errorf("user with id [%d] does not exist", userId)
+	}
+
+	return u, nil
+
+}
+
 func CreateUser(user types.User) (sql.Result, error) {
 	result, err := db.DB.Exec("INSERT INTO users(username, email, password) VALUES(?, ?, ?)", user.UserName, user.Email, user.Password)
 	return result, err

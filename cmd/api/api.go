@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/Blackmamoth/fileforte/config"
-	"github.com/Blackmamoth/fileforte/services/auth"
+	authService "github.com/Blackmamoth/fileforte/services/auth"
+	fileupload "github.com/Blackmamoth/fileforte/services/fileUpload"
 	"github.com/Blackmamoth/fileforte/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,7 +45,7 @@ func (s *APIServer) Run() error {
 		AllowCredentials: true,
 	}))
 
-	router.Mount("/v1/api", routerVersions(router))
+	router.Mount("/v1/api", routerVersions())
 
 	router.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		utils.SendAPIErrorResponse(w, http.StatusNotFound, fmt.Errorf("route not found for [%s] %s", r.Method, r.URL.Path))
@@ -54,13 +55,15 @@ func (s *APIServer) Run() error {
 	return http.ListenAndServe(fmt.Sprintf(":%s", s.addr), router)
 }
 
-func routerVersions(r chi.Router) http.Handler {
+func routerVersions() http.Handler {
 
 	subRouter := chi.NewRouter()
 
-	authHandler := auth.AuthHandler()
-
+	authHandler := authService.AuthHandler()
 	subRouter.Mount("/auth", authHandler)
+
+	fileUploadHandler := fileupload.FileUploadHandler()
+	subRouter.Mount("/fileUpload", fileUploadHandler)
 
 	return subRouter
 
